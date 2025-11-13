@@ -1,0 +1,201 @@
+.teacher-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.avatar {
+  width: 200px;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s;
+}
+
+.avatar.thinking {
+  animation: think 2s ease-in-out infinite;
+}
+
+@keyframes think {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.avatar-head {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 4px solid #fff;
+}
+
+.glasses {
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.glass {
+  width: 30px;
+  height: 25px;
+  border: 3px solid #333;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.eyes {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+}
+
+.eye {
+  width: 12px;
+  height: 12px;
+  background: #333;
+  border-radius: 50%;
+  animation: blink 4s infinite;
+}
+
+@keyframes blink {
+  0%, 48%, 52%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.1);
+  }
+}
+
+.mouth {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 20px;
+  border-bottom: 3px solid #333;
+  border-radius: 0 0 40px 40px;
+}
+
+.avatar-body {
+  width: 140px;
+  height: 100px;
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  border-radius: 60px 60px 20px 20px;
+  position: relative;
+  margin-top: -10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  border: 4px solid #fff;
+}
+
+.tie {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 40px solid #e53e3e;
+}
+
+.tie::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -10px;
+  width: 20px;
+  height: 15px;
+  background: #e53e3e;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.thinking-bubble {
+  position: absolute;
+  top: -50px;
+  right: -30px;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.thinking-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 30px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+}
+
+.thinking-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -25px;
+  left: 20px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+}
+
+.bubble-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.bubble-dots span {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.bubble-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.bubble-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.teacher-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+

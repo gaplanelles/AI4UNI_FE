@@ -1,0 +1,66 @@
+.app-container {
+  min-height: 100vh;
+  background-image: url('/images/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+}
+
+.classroom {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 80px);
+  padding: 20px;
+  gap: 20px;
+}
+
+.left-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+@media (max-width: 1024px) {
+  .classroom {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .left-section {
+    flex: 1;
+  }
+
+  .right-section {
+    max-width: 100%;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .classroom {
+    padding: 15px;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .classroom {
+    padding: 10px;
+    gap: 10px;
+  }
+}

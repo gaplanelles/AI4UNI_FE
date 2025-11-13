@@ -1,0 +1,360 @@
+.blackboard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    inset 0 0 100px rgba(0, 0, 0, 0.02);
+  border: 3px solid #e0e0e0;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(94vh - 260px);
+  max-height: calc(94vh - 280px);
+  flex-shrink: 0;
+}
+
+/* Estilos personalizados para el scrollbar */
+.blackboard::-webkit-scrollbar {
+  width: 12px;
+}
+
+.blackboard::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.blackboard::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.blackboard::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+  background-clip: padding-box;
+}
+
+/* Para Firefox */
+.blackboard {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
+
+.blackboard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.01) 2px,
+      rgba(0, 0, 0, 0.01) 4px
+    );
+  pointer-events: none;
+}
+
+.blackboard-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Nunito', 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 18px;
+  color: #1a1a1a;
+  line-height: 1.6;
+  min-height: 200px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.blackboard-content .math-block {
+  margin: 15px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.blackboard-content .katex {
+  font-size: 1.1em;
+  color: #1a1a1a;
+}
+
+.blackboard-content .katex-display {
+  margin: 0.8em 0;
+}
+
+.processing {
+  font-style: italic;
+  opacity: 0.7;
+  font-size: 14px;
+  color: #666;
+}
+
+.processing .dots::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
+
+/* Efecto de marcador/bolígrafo */
+.blackboard-content::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 8px;
+  background: linear-gradient(90deg, transparent, #667eea, transparent);
+  border-radius: 10px;
+  opacity: 0.3;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para mensajes de conversación */
+.message {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid transparent;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.message-label {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-content {
+  font-family: 'Nunito', 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Estilos específicos por rol */
+.message-system {
+  border-left-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.message-system .message-label {
+  color: #667eea;
+}
+
+.message-user {
+  border-left-color: #48bb78;
+  background: rgba(72, 187, 120, 0.05);
+}
+
+.message-user .message-label {
+  color: #48bb78;
+}
+
+.message-assistant {
+  border-left-color: #ed8936;
+  background: rgba(237, 137, 54, 0.05);
+}
+
+.message-assistant .message-label {
+  color: #ed8936;
+}
+
+/* Estilos para el botón de generar imagen */
+.generate-image-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.generate-image-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.generate-image-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.generate-image-btn:focus {
+  outline: none;
+}
+
+.generate-image-btn:focus-visible {
+  outline: 2px solid rgba(102, 126, 234, 0.4);
+  outline-offset: 2px;
+}
+
+.generate-image-btn.loading {
+  background: rgba(237, 137, 54, 0.1);
+  color: #ed8936;
+}
+
+.generate-image-btn.loading:hover {
+  transform: none;
+}
+
+.generate-image-btn.success {
+  background: rgba(72, 187, 120, 0.1);
+  color: #48bb78;
+}
+
+.generate-image-btn.success:hover {
+  background: rgba(72, 187, 120, 0.2);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.generate-image-btn .dots-animated {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.generate-image-btn .dots-animated::after {
+  content: '';
+  animation: loadingDots 1.5s steps(1, end) infinite;
+}
+
+.generate-image-btn .success-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+@keyframes loadingDots {
+  0%, 20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80%, 100% {
+    content: '...';
+  }
+}
+
+/* Estilos para el popup de imagen */
+.image-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.image-popup-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.close-popup-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.close-popup-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+.generated-image {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+

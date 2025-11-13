@@ -1,0 +1,24 @@
+.math-graph {
+  margin: 20px auto;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.math-graph svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.math-graph p {
+  color: #e53e3e;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
