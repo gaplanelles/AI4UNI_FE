@@ -576,7 +576,11 @@ const Blackboard = ({ messages = [], isProcessing }) => {
               <div className="prompt-section">
                 <button 
                   className="check-prompt-btn" 
-                  onClick={() => setShowPrompt(!showPrompt)}
+                  onClick={() => {
+                    console.log('🔄 Toggling prompt. Estado actual:', showPrompt, '→', !showPrompt)
+                    console.log('📝 Prompt a mostrar:', selectedImage.prompt)
+                    setShowPrompt(!showPrompt)
+                  }}
                 >
                   {showPrompt ? '▲' : '▼'} Check Prompt
                 </button>
