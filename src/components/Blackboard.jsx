@@ -62,33 +62,44 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       }
 
       const data = await response.json()
-      console.log('Respuesta completa del servidor:', data)
-      console.log('Tipo de data:', typeof data)
+      console.log('🔍 Respuesta completa del servidor:', data)
+      console.log('📊 Tipo de data:', typeof data)
       
       // Extraer la imagen y el prompt de la respuesta
       let imageData = null
       let prompt = null
       
-      if (typeof data === 'object' && data.image_base64) {
+      // Primero intentar capturar el prompt si existe (nueva estructura)
+      if (typeof data === 'object' && data !== null) {
+        if (data.prompt) {
+          prompt = data.prompt
+          console.log('✅ Prompt encontrado:', prompt.substring(0, 100) + '...')
+        } else {
+          console.log('⚠️ No se encontró campo "prompt" en la respuesta')
+        }
+      }
+      
+      // Ahora extraer la imagen según el formato
+      if (typeof data === 'object' && data !== null && data.image_base64) {
         // Nueva estructura: { image_base64: "...", mime_type: "...", prompt: "..." }
-        console.log('Formato: nueva estructura con image_base64')
+        console.log('📦 Formato: nueva estructura con image_base64')
         imageData = data.image_base64
-        prompt = data.prompt || null
+        console.log('📦 mime_type:', data.mime_type)
       } else if (typeof data === 'string') {
         // Si la respuesta es directamente el string base64
-        console.log('Formato: string directo')
+        console.log('📦 Formato: string directo')
         imageData = data
       } else if (Array.isArray(data)) {
         // Si es un array (formato OpenAI: [{ b64_json: "..." }])
-        console.log('Formato: array')
+        console.log('📦 Formato: array')
         if (data.length > 0 && data[0].b64_json) {
           imageData = data[0].b64_json
         } else if (data.length > 0 && data[0].url) {
           imageData = data[0].url
         }
-      } else if (typeof data === 'object') {
-        console.log('Formato: objeto')
-        console.log('Keys de data:', Object.keys(data))
+      } else if (typeof data === 'object' && data !== null) {
+        console.log('📦 Formato: objeto legacy')
+        console.log('🔑 Keys de data:', Object.keys(data))
         
         // Probar diferentes propiedades comunes
         if (data.image) {
@@ -111,17 +122,23 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         }
       }
       
-      console.log('ImageData extraída?:', imageData ? 'SÍ' : 'NO')
+      console.log('🖼️ ImageData extraída?:', imageData ? 'SÍ' : 'NO')
+      console.log('📝 Prompt extraído?:', prompt ? 'SÍ' : 'NO')
+      
       if (imageData) {
-        console.log('Longitud de imageData:', imageData.length)
-        console.log('Primeros 100 chars:', imageData.substring(0, 100))
-        console.log('Últimos 50 chars:', imageData.substring(imageData.length - 50))
-        // Verificar si ya tiene el prefijo data:image
-        console.log('Tiene prefijo data:image?', imageData.startsWith('data:image'))
+        console.log('📏 Longitud de imageData:', imageData.length)
+        console.log('🔤 Primeros 100 chars:', imageData.substring(0, 100))
+        console.log('🔚 Últimos 50 chars:', imageData.substring(imageData.length - 50))
+        console.log('🏷️ Tiene prefijo data:image?', imageData.startsWith('data:image'))
+      }
+      
+      if (prompt) {
+        console.log('📋 Longitud del prompt:', prompt.length)
+        console.log('📄 Prompt completo:', prompt)
       }
 
       if (!imageData) {
-        console.error('No se pudo extraer imagen. Data completa:', JSON.stringify(data, null, 2))
+        console.error('❌ No se pudo extraer imagen. Data completa:', JSON.stringify(data, null, 2))
         throw new Error('No se encontró imagen en la respuesta del servidor')
       }
       
@@ -142,8 +159,13 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         [messageIndex]: { status: 'success', imageData: imageData, prompt: prompt }
       }))
       
-      console.log('Estado actualizado a success para mensaje', messageIndex)
-      console.log('Prompt guardado:', prompt ? 'SÍ' : 'NO')
+      console.log('✅ Estado actualizado a success para mensaje', messageIndex)
+      console.log('💾 Datos guardados:', {
+        hasImage: !!imageData,
+        hasPrompt: !!prompt,
+        imageLength: imageData?.length,
+        promptLength: prompt?.length
+      })
 
     } catch (error) {
       console.error('Error al generar imagen:', error)
@@ -341,17 +363,27 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         while ((mathMatch = blockMathRegexLocal.exec(text)) !== null) {
           if (mathMatch.index > lastIdx) {
             const textBefore = text.substring(lastIdx, mathMatch.index)
-            partsWithMath.push({ type: 'text', content: textBefore, key: key++ })
+            // Solo agregar si hay contenido después de hacer trim
+            const trimmedBefore = textBefore.trimEnd()
+            if (trimmedBefore.length > 0) {
+              partsWithMath.push({ type: 'text', content: trimmedBefore, key: key++ })
+            }
           }
           // Usar el grupo que capturó el contenido (puede ser [1] para $$ o [2] para \[)
           const mathContent = mathMatch[1] !== undefined ? mathMatch[1] : mathMatch[2]
-          // Hacer trim para eliminar espacios y saltos de línea al inicio y final
-          partsWithMath.push({ type: 'block-math', content: mathContent.trim(), key: key++ })
+          // Reemplazar saltos de línea por espacios y normalizar espacios múltiples
+          const cleanMathContent = mathContent.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
+          partsWithMath.push({ type: 'block-math', content: cleanMathContent, key: key++ })
           lastIdx = mathMatch.index + mathMatch[0].length
         }
 
         if (lastIdx < text.length) {
-          partsWithMath.push({ type: 'text', content: text.substring(lastIdx), key: key++ })
+          const textAfter = text.substring(lastIdx)
+          // Hacer trimStart para eliminar espacios al inicio después de una fórmula
+          const trimmedAfter = textAfter.trimStart()
+          if (trimmedAfter.length > 0) {
+            partsWithMath.push({ type: 'text', content: trimmedAfter, key: key++ })
+          }
         }
       } else {
         partsWithMath.push(part)
@@ -379,9 +411,11 @@ const Blackboard = ({ messages = [], isProcessing }) => {
 
           // Fórmula inline (puede ser [1] para $ o [2] para \()
           const mathContent = inlineMatch[1] !== undefined ? inlineMatch[1] : inlineMatch[2]
+          // Reemplazar saltos de línea por espacios y normalizar espacios múltiples
+          const cleanMathContent = mathContent.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
           inlineParts.push({
             type: 'inline-math',
-            content: mathContent.trim(),
+            content: cleanMathContent,
             key: key++
           })
           lastIdx = inlineMatch.index + inlineMatch[0].length
