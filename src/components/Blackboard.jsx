@@ -337,7 +337,8 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           }
           // Usar el grupo que capturó el contenido (puede ser [1] para $$ o [2] para \[)
           const mathContent = mathMatch[1] !== undefined ? mathMatch[1] : mathMatch[2]
-          partsWithMath.push({ type: 'block-math', content: mathContent, key: key++ })
+          // Hacer trim para eliminar espacios y saltos de línea al inicio y final
+          partsWithMath.push({ type: 'block-math', content: mathContent.trim(), key: key++ })
           lastIdx = mathMatch.index + mathMatch[0].length
         }
 
@@ -372,7 +373,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           const mathContent = inlineMatch[1] !== undefined ? inlineMatch[1] : inlineMatch[2]
           inlineParts.push({
             type: 'inline-math',
-            content: mathContent,
+            content: mathContent.trim(),
             key: key++
           })
           lastIdx = inlineMatch.index + inlineMatch[0].length
