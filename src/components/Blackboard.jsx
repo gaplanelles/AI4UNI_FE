@@ -8,8 +8,9 @@ import './Blackboard.css'
 
 const Blackboard = ({ messages = [], isProcessing }) => {
   const blackboardRef = useRef(null)
-  const [imageStates, setImageStates] = useState({}) // { messageIndex: { status: 'idle'|'loading'|'success', imageData: null } }
-  const [selectedImage, setSelectedImage] = useState(null) // Para el popup
+  const [imageStates, setImageStates] = useState({}) // { messageIndex: { status: 'idle'|'loading'|'success', imageData: null, prompt: null } }
+  const [selectedImage, setSelectedImage] = useState(null) // Para el popup: { imageData, prompt }
+  const [showPrompt, setShowPrompt] = useState(false) // Para mostrar/ocultar el prompt
 
   // Auto-scroll mientras se actualiza el contenido
   useEffect(() => {
@@ -21,8 +22,9 @@ const Blackboard = ({ messages = [], isProcessing }) => {
   // Debug: ver cuando cambia selectedImage
   useEffect(() => {
     console.log('selectedImage cambió:', selectedImage ? 'Hay imagen' : 'null')
-    if (selectedImage) {
-      console.log('Primeros 100 chars de selectedImage:', selectedImage.substring(0, 100))
+    if (selectedImage && selectedImage.imageData) {
+      console.log('Primeros 100 chars de selectedImage:', selectedImage.imageData.substring(0, 100))
+      console.log('Tiene prompt?:', selectedImage.prompt ? 'SÍ' : 'NO')
     }
   }, [selectedImage])
 
@@ -31,7 +33,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
     // Actualizar estado a loading
     setImageStates(prev => ({
       ...prev,
-      [messageIndex]: { status: 'loading', imageData: null }
+      [messageIndex]: { status: 'loading', imageData: null, prompt: null }
     }))
 
     try {
@@ -63,10 +65,16 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       console.log('Respuesta completa del servidor:', data)
       console.log('Tipo de data:', typeof data)
       
-      // Extraer la imagen de la respuesta (puede estar en diferentes formatos)
+      // Extraer la imagen y el prompt de la respuesta
       let imageData = null
+      let prompt = null
       
-      if (typeof data === 'string') {
+      if (typeof data === 'object' && data.image_base64) {
+        // Nueva estructura: { image_base64: "...", mime_type: "...", prompt: "..." }
+        console.log('Formato: nueva estructura con image_base64')
+        imageData = data.image_base64
+        prompt = data.prompt || null
+      } else if (typeof data === 'string') {
         // Si la respuesta es directamente el string base64
         console.log('Formato: string directo')
         imageData = data
@@ -83,9 +91,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         console.log('Keys de data:', Object.keys(data))
         
         // Probar diferentes propiedades comunes
-        if (data.image_base64) {
-          imageData = data.image_base64
-        } else if (data.image) {
+        if (data.image) {
           imageData = data.image
         } else if (data.data) {
           // data.data puede ser un array o un string
@@ -130,20 +136,21 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         }
       }
 
-      // Actualizar estado a success con la imagen
+      // Actualizar estado a success con la imagen y el prompt
       setImageStates(prev => ({
         ...prev,
-        [messageIndex]: { status: 'success', imageData: imageData }
+        [messageIndex]: { status: 'success', imageData: imageData, prompt: prompt }
       }))
       
       console.log('Estado actualizado a success para mensaje', messageIndex)
+      console.log('Prompt guardado:', prompt ? 'SÍ' : 'NO')
 
     } catch (error) {
       console.error('Error al generar imagen:', error)
       // Volver al estado idle en caso de error
       setImageStates(prev => ({
         ...prev,
-        [messageIndex]: { status: 'idle', imageData: null }
+        [messageIndex]: { status: 'idle', imageData: null, prompt: null }
       }))
       alert('Error al generar la imagen. Por favor, intenta de nuevo.')
     }
@@ -157,7 +164,8 @@ const Blackboard = ({ messages = [], isProcessing }) => {
     console.log('Estado del mensaje:', state)
     if (state && state.imageData) {
       console.log('Mostrando imagen en popup')
-      setSelectedImage(state.imageData)
+      setSelectedImage({ imageData: state.imageData, prompt: state.prompt })
+      setShowPrompt(false) // Reset prompt visibility
     } else {
       console.log('No hay imagen para mostrar')
     }
@@ -509,13 +517,13 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       
       {/* Popup para mostrar la imagen */}
       {selectedImage && (
-        <div className="image-popup-overlay" onClick={() => setSelectedImage(null)}>
+        <div className="image-popup-overlay" onClick={() => { setSelectedImage(null); setShowPrompt(false); }}>
           <div className="image-popup-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-popup-btn" onClick={() => setSelectedImage(null)}>
+            <button className="close-popup-btn" onClick={() => { setSelectedImage(null); setShowPrompt(false); }}>
               ✕
             </button>
             <img 
-              src={selectedImage.startsWith('data:') ? selectedImage : `data:image/png;base64,${selectedImage}`}
+              src={selectedImage.imageData.startsWith('data:') ? selectedImage.imageData : `data:image/png;base64,${selectedImage.imageData}`}
               alt="Imagen generada" 
               className="generated-image"
               onLoad={(e) => {
@@ -526,10 +534,25 @@ const Blackboard = ({ messages = [], isProcessing }) => {
                 console.error('❌ Error al cargar la imagen')
                 console.log('Longitud del src:', e.target.src.length)
                 console.log('Primeros 200 chars del src:', e.target.src.substring(0, 200))
-                console.log('selectedImage type:', typeof selectedImage)
-                console.log('selectedImage length:', selectedImage.length)
+                console.log('selectedImage type:', typeof selectedImage.imageData)
+                console.log('selectedImage length:', selectedImage.imageData.length)
               }}
             />
+            {selectedImage.prompt && (
+              <div className="prompt-section">
+                <button 
+                  className="check-prompt-btn" 
+                  onClick={() => setShowPrompt(!showPrompt)}
+                >
+                  {showPrompt ? '▲' : '▼'} Check Prompt
+                </button>
+                {showPrompt && (
+                  <div className="prompt-content">
+                    <p>{selectedImage.prompt}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
