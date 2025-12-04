@@ -64,11 +64,11 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       const data = await response.json()
       console.log('🔍 Respuesta completa del servidor:', data)
       console.log('📊 Tipo de data:', typeof data)
-      
+
       // Extraer la imagen y el prompt de la respuesta
       let imageData = null
       let prompt = null
-      
+
       // Primero intentar capturar el prompt si existe (nueva estructura)
       if (typeof data === 'object' && data !== null) {
         if (data.prompt) {
@@ -78,7 +78,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           console.log('⚠️ No se encontró campo "prompt" en la respuesta')
         }
       }
-      
+
       // Ahora extraer la imagen según el formato
       if (typeof data === 'object' && data !== null && data.image_base64) {
         // Nueva estructura: { image_base64: "...", mime_type: "...", prompt: "..." }
@@ -100,7 +100,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       } else if (typeof data === 'object' && data !== null) {
         console.log('📦 Formato: objeto legacy')
         console.log('🔑 Keys de data:', Object.keys(data))
-        
+
         // Probar diferentes propiedades comunes
         if (data.image) {
           imageData = data.image
@@ -121,17 +121,17 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           imageData = data.url
         }
       }
-      
+
       console.log('🖼️ ImageData extraída?:', imageData ? 'SÍ' : 'NO')
       console.log('📝 Prompt extraído?:', prompt ? 'SÍ' : 'NO')
-      
+
       if (imageData) {
         console.log('📏 Longitud de imageData:', imageData.length)
         console.log('🔤 Primeros 100 chars:', imageData.substring(0, 100))
         console.log('🔚 Últimos 50 chars:', imageData.substring(imageData.length - 50))
         console.log('🏷️ Tiene prefijo data:image?', imageData.startsWith('data:image'))
       }
-      
+
       if (prompt) {
         console.log('📋 Longitud del prompt:', prompt.length)
         console.log('📄 Prompt completo:', prompt)
@@ -141,7 +141,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         console.error('❌ No se pudo extraer imagen. Data completa:', JSON.stringify(data, null, 2))
         throw new Error('No se encontró imagen en la respuesta del servidor')
       }
-      
+
       // Limpiar el imageData si ya tiene el prefijo data:image
       if (imageData.startsWith('data:image')) {
         console.log('Eliminando prefijo existente data:image')
@@ -158,7 +158,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         ...prev,
         [messageIndex]: { status: 'success', imageData: imageData, prompt: prompt }
       }))
-      
+
       console.log('✅ Estado actualizado a success para mensaje', messageIndex)
       console.log('💾 Datos guardados:', {
         hasImage: !!imageData,
@@ -203,7 +203,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
       // Procesar headings (### al inicio de línea, pero no ###GRAPH)
       if (line.trim().startsWith('###') && !line.trim().startsWith('###GRAPH')) {
         const headingText = line.trim().substring(3).trim()
-        
+
         // Procesar negritas dentro del heading
         const headingParts = []
         let lastIndex = 0
@@ -230,10 +230,10 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         }
 
         processedLines.push(
-          <h3 key={`h3-${key++}`} style={{ 
-            fontSize: '1.3em', 
-            fontWeight: 'bold', 
-            marginTop: '0.8em', 
+          <h3 key={`h3-${key++}`} style={{
+            fontSize: '1.3em',
+            fontWeight: 'bold',
+            marginTop: '0.8em',
             marginBottom: '0.5em',
             color: '#667eea',
             fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
@@ -333,7 +333,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           // Formato 3 y 4: ###GRAPH\n{...}\nEND o ###GRAPH\n{...}\n###END
           jsonString = match[3].trim()
         }
-        
+
         console.log('📊 Gráfico detectado:', jsonString)
         const graphData = JSON.parse(jsonString)
         console.log('✅ Gráfico parseado:', graphData)
@@ -402,9 +402,22 @@ const Blackboard = ({ messages = [], isProcessing }) => {
         while ((inlineMatch = inlineMathRegex.exec(text)) !== null) {
           // Texto antes de la fórmula inline
           if (inlineMatch.index > lastIdx) {
+            let contentBefore = text.substring(lastIdx, inlineMatch.index)
+
+            // Si hubo una fórmula antes (lastIdx > 0), reemplazar salto de línea inicial
+            // Usamos [ \t] en lugar de \s para no incluir \n en la clase de caracteres inicial
+            if (lastIdx > 0) {
+              contentBefore = contentBefore.replace(/^[ \t]*\n(?!\n)/, ' ')
+            }
+
+            // Reemplazar salto de línea simple al final por espacio (para evitar salto de línea antes de la fórmula)
+            // Pero preservar dobles saltos de línea (párrafos)
+            // Regex: busca un \n que no esté precedido por \n y no esté seguido por \n, al final del string
+            contentBefore = contentBefore.replace(/(?<!\n)\n(?!\n)[ \t]*$/, ' ')
+
             inlineParts.push({
               type: 'plain-text',
-              content: text.substring(lastIdx, inlineMatch.index),
+              content: contentBefore,
               key: key++
             })
           }
@@ -423,9 +436,17 @@ const Blackboard = ({ messages = [], isProcessing }) => {
 
         // Texto restante
         if (lastIdx < text.length) {
+          let contentAfter = text.substring(lastIdx)
+
+          // Si hubo alguna fórmula inline antes, reemplazar salto de línea simple al inicio por espacio
+          if (inlineParts.length > 0) {
+            // Regex: busca un \n al inicio (con posibles espacios antes) que no esté seguido por \n
+            contentAfter = contentAfter.replace(/^[ \t]*\n(?!\n)/, ' ')
+          }
+
           inlineParts.push({
             type: 'plain-text',
-            content: text.substring(lastIdx),
+            content: contentAfter,
             key: key++
           })
         }
@@ -499,7 +520,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
                     {message.role === 'user' && '👤 Estudiante'}
                     {message.role === 'assistant' && '👨‍🏫 Ana - Tutora Virtual'}
                   </div>
-                  
+
                   {/* Botón de generar imagen solo para respuestas de Ana */}
                   {message.role === 'assistant' && (
                     <button
@@ -514,11 +535,11 @@ const Blackboard = ({ messages = [], isProcessing }) => {
                       }}
                       disabled={imageStates[index]?.status === 'loading'}
                       title={
-                        imageStates[index]?.status === 'success' 
+                        imageStates[index]?.status === 'success'
                           ? 'Ver imagen generada'
                           : imageStates[index]?.status === 'loading'
-                          ? 'Generando imagen...'
-                          : 'Generar imagen'
+                            ? 'Generando imagen...'
+                            : 'Generar imagen'
                       }
                     >
                       {imageStates[index]?.status === 'loading' && (
@@ -529,7 +550,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
                       )}
                       {(!imageStates[index] || imageStates[index]?.status === 'idle') && (
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-                          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
                         </svg>
                       )}
                     </button>
@@ -548,7 +569,7 @@ const Blackboard = ({ messages = [], isProcessing }) => {
           </div>
         )}
       </div>
-      
+
       {/* Popup para mostrar la imagen */}
       {selectedImage && (
         <div className="image-popup-overlay" onClick={() => { setSelectedImage(null); setShowPrompt(false); }}>
@@ -556,9 +577,9 @@ const Blackboard = ({ messages = [], isProcessing }) => {
             <button className="close-popup-btn" onClick={() => { setSelectedImage(null); setShowPrompt(false); }}>
               ✕
             </button>
-            <img 
+            <img
               src={selectedImage.imageData.startsWith('data:') ? selectedImage.imageData : `data:image/png;base64,${selectedImage.imageData}`}
-              alt="Imagen generada" 
+              alt="Imagen generada"
               className="generated-image"
               onLoad={(e) => {
                 console.log('✅ Imagen cargada exitosamente')
@@ -574,8 +595,8 @@ const Blackboard = ({ messages = [], isProcessing }) => {
             />
             {selectedImage.prompt && (
               <div className="prompt-section">
-                <button 
-                  className="check-prompt-btn" 
+                <button
+                  className="check-prompt-btn"
                   onClick={() => {
                     console.log('🔄 Toggling prompt. Estado actual:', showPrompt, '→', !showPrompt)
                     console.log('📝 Prompt a mostrar:', selectedImage.prompt)
